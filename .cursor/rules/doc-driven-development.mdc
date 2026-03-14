@@ -1,0 +1,19 @@
+---
+description: このプロジェクトはドキュメント駆動開発を行う。設計・仕様は docs/ を正とし、実装はそれに従う。
+globs:
+alwaysApply: true
+---
+
+# ドキュメント駆動開発
+
+- **設計の正は `docs/`** にあり、コードはドキュメントに従って実装する。
+- 仕様を変えるときは **先に `docs/` 内の該当ドキュメントを更新**し、その後でコードを変更する。
+- ディレクトリ・パッケージの追加・役割変更は [docs/architecture/01-directory-structure.md](docs/architecture/01-directory-structure.md) に反映する。
+- 要件は [docs/requirements/](docs/requirements/)、詳細仕様は [docs/specs/](docs/specs/) を参照する。
+
+## 参照順（推奨）
+
+1. docs/requirements/00-overview.md
+2. docs/architecture/01-directory-structure.md
+3. docs/architecture/02-system-architecture.md
+4. 該当機能の docs/specs/ 内ドキュメント
