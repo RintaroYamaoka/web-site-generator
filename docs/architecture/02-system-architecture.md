@@ -72,3 +72,4 @@
 - [入力スキーマ](../specs/01-input-schema.md)
 - [生成パイプライン（仕様書生成→実装）](../specs/02-generation-pipeline.md)
 - [マークダウン仮ページのフォーマット](../specs/04-markdown-spec-format.md)
+- [GitHub リポジトリ自動作成・プッシュ](../specs/05-github-repo.md)

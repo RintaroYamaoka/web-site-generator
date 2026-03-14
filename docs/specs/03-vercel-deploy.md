@@ -30,7 +30,7 @@
 
 - `VERCEL_TOKEN`: デプロイに使う Vercel のトークン（必須）。
 - `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID`: 既存プロジェクトにデプロイする場合に指定。未指定の場合は新規プロジェクトとして作成する方針とする。
-- これらはリポジトリに含めず、`.env.example` に変数名だけ記載する。
+- これらはリポジトリに含めず、ルートの `.env.example` に変数名だけ記載する。実行時は環境変数から読み込む（ユーザー設定でトークンを登録する拡張は別仕様）。
 
 ## エラーハンドリング
 
@@ -40,4 +40,5 @@
 ## 関連
 
 - [生成パイプライン仕様](./02-generation-pipeline.md)
+- [GitHub リポジトリ自動作成・プッシュ](./05-github-repo.md)
 - [システムアーキテクチャ](../architecture/02-system-architecture.md)
