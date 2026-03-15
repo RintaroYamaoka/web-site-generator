@@ -1,6 +1,6 @@
 # Web サイト制作代行 — Webサイト自動生成
 
-ユーザーが「ざっくりした内容・ページ構成・イメージ」を入力すると、Next.js のWebサイトを自動生成し、Vercel にデプロイして URL を返すプロジェクトです。
+**サイト閲覧者（ユーザー）の入力情報を元に LLM API を使って Web サイトを制作する Web アプリ**です。ユーザーが「ざっくりした内容・ページ構成・イメージ」を入力すると、Next.js のサイトを自動生成し、Vercel にデプロイして URL を返します。
 
 **開発はドキュメント駆動。** 設計・仕様・開発フローは **[docs/](docs/)** に集約（[docs/README.md](docs/README.md)・[workflow.md](docs/development/workflow.md) を参照）。
 
