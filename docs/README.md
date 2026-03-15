@@ -2,7 +2,7 @@
 
 ## 方針
 
-**コードを書く前にドキュメントで設計する**ことを原則とします。
+**コードを書く前にドキュメントで設計する**ことを原則とします。実装前に起こりうる問題の調査結果は [implementation-risks.md](./implementation-risks.md) にまとめてある。
 
 - 要件・目標は `requirements/` に記載し、実装前に合意する
 - アーキテクチャ・ディレクトリ構造は `architecture/` に定義する
@@ -26,6 +26,12 @@
 3. **実装** → ドキュメントを唯一の仕様書としてコードを書く
 4. **変更** → 仕様が変わったらまずドキュメントを更新し、その後コードを合わせる
 
+本プロジェクトで実際にたどった設計〜実装直前の流れは [00-development-flow-record.md](./00-development-flow-record.md) に記録してある。実装開始の可否チェックリストと参照順もそこにまとめた。
+
+## 実装フェーズに移れるか
+
+設計フェーズの完了条件と「実装に進んでよいか」のチェックリストは [00-development-flow-record.md](./00-development-flow-record.md#実装フェーズに移れるかチェックリスト) に記載。現時点では **実装フェーズに移ってよい** 状態。
+
 ## ドキュメントの参照順（推奨）
 
 新規参加者・実装開始時は次の順で読むと理解しやすいです。
@@ -33,4 +39,4 @@
 1. [プロジェクト概要・目標](./requirements/00-overview.md)
 2. [ディレクトリ構造](./architecture/01-directory-structure.md)
 3. [システムアーキテクチャ](./architecture/02-system-architecture.md)（仮ページ生成 → LLM 実装 → Git → Vercel の流れ）
-4. 該当機能の [specs/](./specs/) 内ドキュメント（入力スキーマ・生成パイプライン・[マークダウン形式の仮ページ](./specs/04-markdown-spec-format.md)・[LLM 最適化](./specs/06-llm-optimization.md) 等）
+4. 該当機能の [specs/](./specs/) 内ドキュメント（[入力スキーマ](./specs/01-input-schema.md)・[生成パイプライン](./specs/02-generation-pipeline.md)・[仕様書 1 本の構成](./specs/04-markdown-spec-format.md)・[LLM 最適化](./specs/06-llm-optimization.md)・[生成サイト技術仕様](./specs/07-generated-site-tech-spec.md)・[LLM 選定](./specs/08-llm-selection.md)・[ジェネレーター UI](./specs/09-generator-ui-spec.md) 等）

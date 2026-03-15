@@ -24,7 +24,7 @@
 2. **Vercel CLI**  
    `vercel --prod` を子プロセスで実行し、標準出力から URL をパースする。CLI がインストールされている環境に依存する。
 
-推奨: 初期は **Vercel CLI** で実装し、のちに API に切り替えるかは `docs/decisions/` で ADR 化する。
+**初版の運用**: 生成ディレクトリに対して **Vercel CLI**（`vercel --prod` 相当）でデプロイする。GitHub リポジトリ（05）の作成・push はオプションとし、Vercel は **CLI 経由でディレクトリから直接デプロイ**する形でよい。のちに Git 連携に切り替える場合は `docs/decisions/` で ADR 化する。
 
 ## 環境変数・認証
 

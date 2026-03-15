@@ -12,6 +12,10 @@ dist/
 .env.local
 .env.*.local
 
+# Cursor / agent skills (project-local)
+.agent/
+.agents/
+
 # IDE
 .idea/
 .vscode/
