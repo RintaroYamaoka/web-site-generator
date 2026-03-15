@@ -73,3 +73,4 @@
 - [生成パイプライン（仕様書生成→実装）](../specs/02-generation-pipeline.md)
 - [マークダウン仮ページのフォーマット](../specs/04-markdown-spec-format.md)
 - [GitHub リポジトリ自動作成・プッシュ](../specs/05-github-repo.md)
+- [LLM の性質に最適化した設計](../specs/06-llm-optimization.md)

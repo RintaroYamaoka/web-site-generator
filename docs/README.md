@@ -33,4 +33,4 @@
 1. [プロジェクト概要・目標](./requirements/00-overview.md)
 2. [ディレクトリ構造](./architecture/01-directory-structure.md)
 3. [システムアーキテクチャ](./architecture/02-system-architecture.md)（仮ページ生成 → LLM 実装 → Git → Vercel の流れ）
-4. 該当機能の [specs/](./specs/) 内ドキュメント（入力スキーマ・生成パイプライン・[マークダウン形式の仮ページ](./specs/04-markdown-spec-format.md) 等）
+4. 該当機能の [specs/](./specs/) 内ドキュメント（入力スキーマ・生成パイプライン・[マークダウン形式の仮ページ](./specs/04-markdown-spec-format.md)・[LLM 最適化](./specs/06-llm-optimization.md) 等）
