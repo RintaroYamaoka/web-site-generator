@@ -1,0 +1,14 @@
+{
+  "name": "web-site-generator",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm --filter web dev",
+    "lint": "pnpm -r run lint",
+    "test": "pnpm --filter @web-site-generator/shared run test && pnpm --filter web run test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@9.14.2"
+}

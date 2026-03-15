@@ -1,0 +1,19 @@
+{
+  "name": "@web-site-generator/core",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@web-site-generator/shared": "workspace:*",
+    "@web-site-generator/deploy": "workspace:*",
+    "@google/genai": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

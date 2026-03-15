@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0d0d0d;
+  --fg: #e6e6e6;
+  --input-fg: #ffffff;
+  --muted: #737373;
+  --accent: #a3a3a3;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, sans-serif;
+}
+
+/* 全画面共通: シンプルなスクリーンセーバー風・無機質でAIチックな背景 */
+.bg-screensaver-dot {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.3;
+  animation: screensaver-float 25s linear infinite;
+}
+
+@keyframes screensaver-float {
+  0% { transform: translateY(0); opacity: 0; }
+  8% { opacity: 0.28; }
+  92% { opacity: 0.28; }
+  100% { transform: translateY(-100vh); opacity: 0; }
+}
+
+/* フォーム: 入力値は白文字で視認性を確保。プレースホルダーは muted */
+input, textarea, select {
+  background-color: #1a1a1a !important;
+  color: var(--input-fg);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+select option {
+  background-color: #1a1a1a;
+  color: var(--fg);
+}

@@ -14,8 +14,9 @@
 web-site-generator/
 ├── docs/                    # ドキュメント（設計の正）
 │   ├── README.md            # ドキュメント駆動の進め方・索引
-│   ├── requirements/        # 要件・ユーザーストーリー
-│   ├── architecture/        # アーキテクチャ・ディレクトリ設計
+│   ├── development/         # 開発フロー・原則（正本。コンテキストの入口）
+│   ├── requirements/       # 要件・ユーザーストーリー
+│   ├── architecture/       # アーキテクチャ・ディレクトリ設計
 │   ├── specs/               # 詳細仕様（API・UI・パイプライン）
 │   ├── decisions/           # ADR（アーキテクチャ決定記録）
 │   └── templates/           # テンプレート設計メモ・コンテンツ方針
@@ -40,6 +41,7 @@ web-site-generator/
 
 | パス | 役割 |
 |------|------|
+| `development/` | 開発フロー・原則の正本。学び・振り返り（lessons-learned）もここに置く。AI・人のコンテキスト入口。 |
 | `requirements/` | 目標・ユーザーストーリー・受け入れ条件 |
 | `architecture/` | システム構成・ディレクトリ・データフロー |
 | `specs/` | API・入力スキーマ・生成パイプラインの詳細 |
@@ -70,6 +72,10 @@ web-site-generator/
 ### scripts/
 
 - 一括ビルド・デプロイ・E2E 検証など、ルートから実行するスクリプトを配置する。
+
+## パッケージ間の依存
+
+`packages/` および `apps/web` の依存の向き・責務の境界は [02-system-architecture.md](./02-system-architecture.md#パッケージ依存関係と責務) に明文化する。shared → core → web の一方向とし、循環依存は禁止。
 
 ## ドキュメント駆動での運用
 

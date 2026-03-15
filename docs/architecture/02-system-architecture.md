@@ -32,6 +32,39 @@
 | デプロイ | `packages/deploy` | Vercel API/CLI によるデプロイ、URL 取得 |
 | 共有型・ユーティリティ | `packages/shared` | 入力スキーマ型、仕様書フォーマット定義、設定、ログ等 |
 
+## パッケージ依存関係と責務
+
+モジュール間の依存は**一方向**にし、循環させない。
+
+### 依存の向き
+
+```
+packages/shared     … 他パッケージに依存しない（型・定数・validate のみ）
+       ↑
+packages/deploy     … 他パッケージに依存しない（ディレクトリを受け取りビルド・Git・Vercel）
+       ↑
+packages/core       … shared（型・validate）と deploy（deployFromDir）にのみ依存
+       ↑
+apps/web            … shared（型）、core（API ルート内で runFullPipeline のみ）に依存
+```
+
+- **shared** は一切の内部パッケージに依存しない。入力スキーマ型・定数・`validateSiteGenerationInput` を提供する。
+- **deploy** は shared / core に依存しない。生成済みディレクトリの `npm install`・ビルド・Git 初期化・Vercel デプロイのみ担当する。
+- **core** は shared と deploy にのみ依存する。検証 → マークダウン生成 → LLM 実装 → ファイル出力 → deploy 呼び出しまでを一括で担当する。
+- **web** は shared（型の参照）と core（`/api/generate` から `runFullPipeline` を呼ぶだけ）に依存する。core は API ルート（サーバー）からのみ参照し、クライアントバンドルには含めない。
+
+### 責務の境界
+
+| パッケージ | 責務 | 依存してよいもの |
+|------------|------|------------------|
+| **shared** | 入力スキーマ型・定数・入力検証 | なし（ルート） |
+| **deploy** | 生成物ディレクトリのビルド・Git・Vercel デプロイ | なし |
+| **core** | 検証・マークダウン生成・LLM・ファイル出力・deploy 呼び出し | shared, deploy |
+| **web** | フォーム UI・下書き永続化・生成 API のエントリ | shared（型）, core（API 内のみ） |
+
+- **循環依存**: 禁止。上記の向き以外の依存を追加しない。
+- **apps/web 内の formDraftStorage**: フォーム専用の下書き型（FormDraft）と localStorage 入出力は web に置く。shared の型（PageInput 等）を import して再利用するが、FormDraft そのものは shared に置かない（UI 固有のため）。
+
 ## データの流れ
 
 1. **入力スキーマ**  

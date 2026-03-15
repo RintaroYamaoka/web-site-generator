@@ -25,7 +25,7 @@
 2. **GitHub にリポジトリ作成**  
    - **GitHub REST API** `POST /user/repos`（または `POST /orgs/:org/repos`）で新規リポジトリを作成する。  
    - 認証は **環境変数 `GITHUB_TOKEN`**（Personal Access Token）を用いる。  
-   - リポジトリ名は入力または一意名。public/private は設定またはデフォルトで指定。
+   - リポジトリ名は入力または一意名。**生成するサイト用リポジトリはプライベート**とする（`private: true` で作成）。本プロジェクト（サイトジェネレーター）のリポジトリはパブリック、生成物のリポジトリはプライベート、という方針。
 
 3. **リモート追加とプッシュ**  
    `git remote add origin <cloneUrl>` → `git push -u origin main`（または既定ブランチ）を実行する。  
