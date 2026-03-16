@@ -7,7 +7,7 @@ export type DeployResult =
   | { success: false; error: string; code?: string };
 
 /**
- * 生成済み Next.js ディレクトリで npm install → build → git init → vercel --prod を実行し、URL を返す。
+ * 生成済み Next.js ディレクトリで npm install → build → git init → vercel（preview/prod）を実行し、URL を返す。
  * 03 仕様: 初版は Vercel CLI でディレクトリから直接デプロイ。
  */
 export async function deployFromDir(dir: string): Promise<DeployResult> {
@@ -46,9 +46,15 @@ export async function deployFromDir(dir: string): Promise<DeployResult> {
     return { success: false, error: "VERCEL_TOKEN が設定されていません", code: "CONFIG_ERROR" };
   }
 
+  const targetRaw = (process.env.VERCEL_DEPLOY_TARGET ?? "preview").toLowerCase();
+  const isProd = targetRaw === "prod" || targetRaw === "production";
+  const vercelCmd = isProd
+    ? `npx vercel --yes --token ${token} --prod`
+    : `npx vercel --yes --token ${token}`;
+
   try {
     const result = execSync(
-      `npx vercel --yes --token ${token} --prod`,
+      vercelCmd,
       { cwd, encoding: "utf-8", env: { ...process.env, VERCEL_TOKEN: token } }
     );
     const urlMatch = result.match(/https:\/\/[^\s]+/);

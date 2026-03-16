@@ -34,9 +34,17 @@
   - **メリット**: 必要なトークンが減り（`GITHUB_TOKEN` 不要）、構成が単純で導入が速い
   - **デメリット**: 生成物のソースが GitHub に残らない（差分管理・再デプロイ・手直しの導線が弱い）
 
+## デプロイターゲット（Preview / Production）
+
+- 生成サイトを Vercel に載せて **URL を返すこと**が目的なので、初版では **Preview デプロイでも可**とする（`vercel` / `vercel --prod` のどちらでも URL は得られる）。
+- 運用上・アカウント設定上の理由で Production が弾かれる場合があるため、実装では **ターゲットを切り替え可能**にする。
+  - 既定: **Preview**（`vercel`）
+  - 明示的に Production にしたい場合のみ **Production**（`vercel --prod`）
+
 ## 環境変数・認証
 
 - `VERCEL_TOKEN`: デプロイに使う Vercel のトークン（必須）。
+- `VERCEL_DEPLOY_TARGET`: `preview` / `production`（任意）。未指定は `preview`。
 - `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID`: 既存プロジェクトにデプロイする場合に指定。未指定の場合は新規プロジェクトとして作成する方針とする。
 - これらはリポジトリに含めず、ルートの `.env.example` に変数名だけ記載する。実行時は環境変数から読み込む（ユーザー設定でトークンを登録する拡張は別仕様）。
 
