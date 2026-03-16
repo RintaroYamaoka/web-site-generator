@@ -35,27 +35,30 @@ async function writeAttachedImages(
 }
 
 const TECH_SPEC_SUMMARY = `
-生成するサイトは次の技術・構成に**固定**すること:
+生成するサイトは次の技術・構成に**固定**すること。**必ず npm run build が成功するコードを出力すること。**
 
 【技術スタック】
-- Next.js (App Router), TypeScript, Tailwind CSS, npm
+- Next.js 14 (App Router), TypeScript, Tailwind CSS, npm
+- package.json の dependencies は必ず "next": "14.2.0", "react": "18.2.0", "react-dom": "18.2.0" を含める
 - 画像は必ず next/image を使用する
-- 追加の依存パッケージはできるだけ増やさない（どうしても必要な場合のみ追加）
+- 追加の依存パッケージは極力増やさない（必要な場合のみ、正しいバージョンで追加）
 
 【必須のファイル構成】
-- package.json
-- tsconfig.json
-- next.config.mjs または next.config.js のどちらか 1 つ
-- tailwind.config.(js|ts)
-- postcss.config.(js|cjs)
-- app/layout.tsx
-- app/page.tsx（トップページ）
+- package.json（scripts.build: "next build", scripts.dev: "next dev" を含む）
+- tsconfig.json（"strict": true, "module": "ESNext" 等）
+- next.config.mjs または next.config.js
+- tailwind.config.ts（content: ["./app/**/*.tsx", ...]）
+- postcss.config.mjs（plugins: tailwindcss, autoprefixer）
+- app/layout.tsx（export default function RootLayout）
+- app/page.tsx（トップ）
 - 仕様書の各ページに対応する app/<path>/page.tsx
 
-【重要な制約】
-- 上記の必須ファイルは**すべて必ず作成すること**。
-- 仕様書にないパスや不要なページは極力作らない。
-- import パスは常に正しく解決できるように書く（相対パスの ../ の数を間違えない）。
+【ビルドエラーを防ぐ制約】
+- "use client" は useState/onClick 等のクライアント機能を使うコンポーネントにのみ付ける。layout.tsx や静的な page には付けない。
+- import は必ず正しいパスで書く。@/ は使わず相対パス（../）で統一するか、tsconfig の paths を正しく設定する。
+- React コンポーネントは default export で export default function Xxx とする。
+- next/image は import Image from "next/image" でインポートし、width/height または fill を指定する。
+- 上記の必須ファイルは**すべて必ず作成**し、構文エラー・型エラーがないこと。
 - 仕様書の見出し・本文・文言・画像指定をすべて反映すること。デザインは中身とデザイン希望に合わせる。
 `.trim();
 

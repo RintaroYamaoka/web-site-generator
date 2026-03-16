@@ -43,15 +43,17 @@
 
 - `VERCEL_TOKEN`: デプロイに使う Vercel のトークン（必須）。
 - `VERCEL_DEPLOY_TARGET`: `preview` / `production`（任意）。未指定は `preview`。
+- `SKIP_BUILD_VERIFY`: `1` にするとデプロイ前のローカルビルド検証をスキップ（サーバーレスでタイムアウトする場合など）。
 - `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID`: 既存プロジェクトにデプロイする場合に指定。未指定の場合は新規プロジェクトとして作成する方針とする。
 - これらはリポジトリに含めず、ルートの `.env.example` に変数名だけ記載する。実行時は環境変数から読み込む（ユーザー設定でトークンを登録する拡張は別仕様）。
 
 ## デプロイフロー（REST API）
 
 1. **ファイル収集** … 生成ディレクトリから `package.json`, `app/`, `public/`, `next.config.*`, `tailwind.config.*`, `tsconfig.json`, `postcss.config.*` 等を再帰的に読み取り、`{ file: 相対パス, data: 内容, encoding: "utf-8"|"base64" }` の配列を構築する。`node_modules`, `.git`, `.next` は除外。
-2. **デプロイ作成** … `POST https://api.vercel.com/v13/deployments` に `name`（一意、例: `gen-${timestamp}`）、`files`、`target: "preview"` を送信。
-3. **完了待機** … レスポンスの `id` で `GET /v13/deployments/:id` をポーリングし、`readyState === "READY"` または `readyState === "ERROR"` になるまで待つ。タイムアウト（例: 5 分）を設ける。
-4. **URL 返却** … `readyState === "READY"` なら `url` を返す。`ERROR` ならビルドログ等をエラーメッセージに含めて返す。
+2. **ビルド検証（オプション）** … `SKIP_BUILD_VERIFY` が未設定の場合、ローカルで `npm install` → `npm run build` を実行し、失敗時はビルドログをエラーとして返す（BUILD_ERROR の早期検出・詳細表示）。成功後は `node_modules` / `.next` を除外して再収集。
+3. **デプロイ作成** … `POST https://api.vercel.com/v13/deployments` に `name`（一意、例: `gen-${timestamp}`）、`files`、`target: "preview"` を送信。
+4. **完了待機** … レスポンスの `id` で `GET /v13/deployments/:id` をポーリングし、`readyState === "READY"` または `readyState === "ERROR"` になるまで待つ。タイムアウト（例: 5 分）を設ける。
+5. **URL 返却** … `readyState === "READY"` なら `url` を返す。`ERROR` なら `errorMessage` / `errorStep` / `errorCode` をエラーメッセージに含めて返す。
 
 ## エラーハンドリング
 

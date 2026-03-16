@@ -1,4 +1,5 @@
 import * as fs from "node:fs/promises";
+import { execSync } from "node:child_process";
 import * as path from "node:path";
 
 export type DeployResult =
@@ -8,6 +9,7 @@ export type DeployResult =
 const VERCEL_API = "https://api.vercel.com";
 const POLL_INTERVAL_MS = 3000;
 const DEPLOY_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
+const BUILD_TIMEOUT_MS = 3 * 60 * 1000; // 3 min
 
 const EXCLUDE_DIRS = new Set(["node_modules", ".git", ".next", "dist"]);
 
@@ -78,6 +80,45 @@ export async function deployFromDir(dir: string): Promise<DeployResult> {
 
   if (files.length === 0) {
     return { success: false, error: "デプロイするファイルがありません", code: "INVALID_PROJECT" };
+  }
+
+  // デプロイ前にローカルでビルド検証（BUILD_ERROR の早期検出・詳細なエラー取得）
+  const skipVerify = process.env.SKIP_BUILD_VERIFY === "1";
+  if (!skipVerify) {
+    try {
+      execSync("npm install", {
+        cwd: resolvedDir,
+        stdio: "pipe",
+        encoding: "utf-8",
+        timeout: BUILD_TIMEOUT_MS,
+      });
+    } catch (e) {
+      const err = e as { stderr?: string; stdout?: string; message?: string };
+      const out = [err.stdout, err.stderr].filter(Boolean).join("\n").slice(0, 500);
+      return {
+        success: false,
+        error: out ? `npm install 失敗: ${out}` : `npm install 失敗: ${err.message ?? String(e)}`,
+        code: "BUILD_ERROR",
+      };
+    }
+    try {
+      execSync("npm run build", {
+        cwd: resolvedDir,
+        stdio: "pipe",
+        encoding: "utf-8",
+        timeout: BUILD_TIMEOUT_MS,
+      });
+    } catch (e) {
+      const err = e as { stderr?: string; stdout?: string; message?: string };
+      const out = [err.stdout, err.stderr].filter(Boolean).join("\n").slice(0, 800);
+      return {
+        success: false,
+        error: out ? `ビルド失敗: ${out}` : `ビルド失敗: ${err.message ?? String(e)}`,
+        code: "BUILD_ERROR",
+      };
+    }
+    // 検証後は node_modules/.next を除外して再収集（アップロードサイズ削減）
+    files = await collectFiles(resolvedDir);
   }
 
   const projectName = `gen-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -158,13 +199,23 @@ export async function deployFromDir(dir: string): Promise<DeployResult> {
         url?: string;
         buildingAt?: number;
         error?: { message?: string };
+        errorMessage?: string | null;
+        errorCode?: string;
+        errorStep?: string;
+        readyStateReason?: string;
       };
 
       if (dep.readyState === "READY" && dep.url) {
         return { success: true, url: dep.url };
       }
       if (dep.readyState === "ERROR") {
-        const errMsg = dep.error?.message ?? "Vercel ビルドが失敗しました";
+        const parts: string[] = [];
+        if (dep.errorMessage) parts.push(dep.errorMessage);
+        else if (dep.error?.message) parts.push(dep.error.message);
+        else parts.push("Vercel ビルドが失敗しました");
+        if (dep.errorStep) parts.push(`（ステップ: ${dep.errorStep}）`);
+        if (dep.errorCode) parts.push(`[${dep.errorCode}]`);
+        const errMsg = parts.join(" ");
         return { success: false, error: errMsg, code: "BUILD_ERROR" };
       }
     } catch (e) {
