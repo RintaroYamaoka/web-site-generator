@@ -87,7 +87,9 @@ export async function deployFromDir(dir: string): Promise<DeployResult> {
   }
 
   // デプロイ前にローカルでビルド検証（BUILD_ERROR の早期検出・詳細なエラー取得）
-  const skipVerify = process.env.SKIP_BUILD_VERIFY === "1";
+  // Vercel サーバーレスでは /tmp が 512MB に制限され npm install で ENOSPC になるため、自動スキップ
+  const skipVerify =
+    process.env.SKIP_BUILD_VERIFY === "1" || process.env.VERCEL === "1";
   if (!skipVerify) {
     try {
       execSync("npm install", {

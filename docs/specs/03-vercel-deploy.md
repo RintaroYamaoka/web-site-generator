@@ -43,7 +43,7 @@
 
 - `VERCEL_TOKEN`: デプロイに使う Vercel のトークン（必須）。
 - `VERCEL_DEPLOY_TARGET`: `preview` / `production`（任意）。未指定は `preview`。
-- `SKIP_BUILD_VERIFY`: `1` にするとデプロイ前のローカルビルド検証をスキップ（サーバーレスでタイムアウトする場合など）。
+- `SKIP_BUILD_VERIFY`: `1` にするとデプロイ前のローカルビルド検証をスキップ。**本アプリを Vercel にデプロイしている場合は `VERCEL=1` により自動スキップ**（サーバーレスの `/tmp` が 512MB に制限され、`npm install` で ENOSPC になるため）。
 - `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID`: 既存プロジェクトにデプロイする場合に指定。未指定の場合は新規プロジェクトとして作成する方針とする。
 - これらはリポジトリに含めず、ルートの `.env.example` に変数名だけ記載する。実行時は環境変数から読み込む（ユーザー設定でトークンを登録する拡張は別仕様）。
 
