@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
-    "build": "next build",
+    "build": "pnpm -r --filter @web-site-generator/shared --filter @web-site-generator/deploy --filter @web-site-generator/core run build && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",

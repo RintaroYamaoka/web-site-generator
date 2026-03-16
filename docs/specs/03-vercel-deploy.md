@@ -58,3 +58,8 @@
 - [生成パイプライン仕様](./02-generation-pipeline.md)
 - [GitHub リポジトリ自動作成・プッシュ](./05-github-repo.md)
 - [システムアーキテクチャ](../architecture/02-system-architecture.md)
+
+## モノレポ（workspace）での注意
+
+- `apps/web` は `@web-site-generator/*` を workspace 依存しているため、デプロイ環境で `apps/web` だけを `next build` すると、依存パッケージの `dist/` が存在せず **Module not found** になる場合がある。
+- 対策: `apps/web` のビルド前に `packages/*` の `build`（`tsc`）を実行する（例: `pnpm -r --filter @web-site-generator/shared --filter @web-site-generator/deploy --filter @web-site-generator/core run build`）。
