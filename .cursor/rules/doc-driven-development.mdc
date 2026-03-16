@@ -1,19 +1,14 @@
 ---
-description: このプロジェクトはドキュメント駆動開発を行う。設計・仕様は docs/ を正とし、実装はそれに従う。
+description: このプロジェクトはドキュメント駆動開発を行う。設計・仕様および開発フローは docs/ に集約されている。必ず docs に従う。
 globs:
 alwaysApply: true
 ---
 
 # ドキュメント駆動開発
 
-- **設計の正は `docs/`** にあり、コードはドキュメントに従って実装する。
-- 仕様を変えるときは **先に `docs/` 内の該当ドキュメントを更新**し、その後でコードを変更する。
-- ディレクトリ・パッケージの追加・役割変更は [docs/architecture/01-directory-structure.md](docs/architecture/01-directory-structure.md) に反映する。
-- 要件は [docs/requirements/](docs/requirements/)、詳細仕様は [docs/specs/](docs/specs/) を参照する。
+**設計・仕様および開発フロー・原則の正本は [docs/](docs/) に集約されている。** 開発・変更時は必ず以下に従うこと。
 
-## 参照順（推奨）
+- **コンテキストの入口** … [docs/development/workflow.md](docs/development/workflow.md)（原則・手順・参照順）
+- **ドキュメント索引** … [docs/README.md](docs/README.md)
 
-1. docs/requirements/00-overview.md
-2. docs/architecture/01-directory-structure.md
-3. docs/architecture/02-system-architecture.md
-4. 該当機能の docs/specs/ 内ドキュメント
+原則の要約: 正は docs/。**挙動・仕様を変えるときは必ず「① 該当 docs を参照 → ② 仕様を更新 → ③ 実装」の順で行う。** 先に実装してからドキュメントを合わせるのは本流ではない。ディレクトリ・パッケージの変更は先に [docs/architecture/01-directory-structure.md](docs/architecture/01-directory-structure.md) を更新する。
