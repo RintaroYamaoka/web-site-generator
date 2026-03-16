@@ -212,7 +212,12 @@ export async function deployFromDir(dir: string): Promise<DeployResult> {
       };
 
       if (dep.readyState === "READY" && dep.url) {
-        return { success: true, url: dep.url };
+        // Vercel API はプロトコルなしで返す。href で相対パス扱いされ 404 になるのを防ぐ
+        const url =
+          dep.url.startsWith("http://") || dep.url.startsWith("https://")
+            ? dep.url
+            : `https://${dep.url}`;
+        return { success: true, url };
       }
       if (dep.readyState === "ERROR") {
         const parts: string[] = [];
