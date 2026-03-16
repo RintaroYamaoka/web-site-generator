@@ -16,15 +16,13 @@
   - 成功時: `{ url: string; projectId?: string; ... }`  
   - 失敗時: `{ error: string; details?: unknown }`
 
-## 実装方針（候補）
+## 実装方針（ロジックでデプロイ）
 
-1. **Vercel REST API**  
-   [Deployments API](https://vercel.com/docs/rest-api#endpoints/deployments) を用い、ZIP をアップロードしてデプロイ。プロジェクトが未作成の場合は Projects API で先に作成する。
+**デプロイは CLI ではなくロジック（Vercel REST API）で行う。**
 
-2. **Vercel CLI**  
-   `vercel --prod` を子プロセスで実行し、標準出力から URL をパースする。CLI がインストールされている環境に依存する。
-
-**初版の運用**: 生成ディレクトリに対して **Vercel CLI**（`vercel --prod` 相当）でデプロイする。GitHub リポジトリ（05）の作成・push はオプションとし、Vercel は **CLI 経由でディレクトリから直接デプロイ**する形でよい。のちに Git 連携に切り替える場合は `docs/decisions/` で ADR 化する。
+- **Vercel REST API** を用い、生成ディレクトリのファイルを `POST /v13/deployments` の `files` にインラインで送信する。
+- ローカルでの `npm install` / `npm run build` / `git init` / `npx vercel` は行わない。Vercel 側でビルドが実行される。
+- メリット: サーバーレス環境（Vercel Functions）で `child_process` を使わず、純粋な HTTP 呼び出しのみで完結する。タイムアウト・ハングのリスクを減らせる。
 
 ## GitHub 連携（push）について
 
@@ -48,10 +46,17 @@
 - `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID`: 既存プロジェクトにデプロイする場合に指定。未指定の場合は新規プロジェクトとして作成する方針とする。
 - これらはリポジトリに含めず、ルートの `.env.example` に変数名だけ記載する。実行時は環境変数から読み込む（ユーザー設定でトークンを登録する拡張は別仕様）。
 
+## デプロイフロー（REST API）
+
+1. **ファイル収集** … 生成ディレクトリから `package.json`, `app/`, `public/`, `next.config.*`, `tailwind.config.*`, `tsconfig.json`, `postcss.config.*` 等を再帰的に読み取り、`{ file: 相対パス, data: 内容, encoding: "utf-8"|"base64" }` の配列を構築する。`node_modules`, `.git`, `.next` は除外。
+2. **デプロイ作成** … `POST https://api.vercel.com/v13/deployments` に `name`（一意、例: `gen-${timestamp}`）、`files`、`target: "preview"` を送信。
+3. **完了待機** … レスポンスの `id` で `GET /v13/deployments/:id` をポーリングし、`readyState === "READY"` または `readyState === "ERROR"` になるまで待つ。タイムアウト（例: 5 分）を設ける。
+4. **URL 返却** … `readyState === "READY"` なら `url` を返す。`ERROR` ならビルドログ等をエラーメッセージに含めて返す。
+
 ## エラーハンドリング
 
-- ネットワークエラー・認証エラー・ビルド失敗は、呼び出し元がメッセージをユーザーに表示できる形で返す。
-- リトライは Vercel のレート制限を考慮し、必要なら指数バックオフを検討する（詳細は実装時または ADR で定義）。
+- ネットワークエラー・認証エラー（401/403）・ビルド失敗（Vercel 側）は、呼び出し元がメッセージをユーザーに表示できる形で返す。
+- エラーコード: `CONFIG_ERROR`（トークン未設定）、`INVALID_PROJECT`（package.json なし）、`DEPLOY_ERROR`（API 失敗・ビルド失敗・タイムアウト）。
 
 ## 関連
 

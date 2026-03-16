@@ -35,7 +35,7 @@
 2. [ディレクトリ構造](./architecture/01-directory-structure.md)
 3. [システムアーキテクチャ](./architecture/02-system-architecture.md)
 4. 該当機能の **specs/** 内ドキュメント  
-   - 例: [01 入力スキーマ](./specs/01-input-schema.md) / [02 生成パイプライン](./specs/02-generation-pipeline.md) / [04 マークダウン仕様](./specs/04-markdown-spec-format.md) / [07 生成サイト技術仕様](./specs/07-generated-site-tech-spec.md) / [08 LLM 選定](./specs/08-llm-selection.md) / [09 ジェネレーター UI](./specs/09-generator-ui-spec.md)
+   - 例: [01 入力スキーマ](./specs/01-input-schema.md) / [02 生成パイプライン](./specs/02-generation-pipeline.md) / [04 マークダウン仕様](./specs/04-markdown-spec-format.md) / [07 生成サイト技術仕様](./specs/07-generated-site-tech-spec.md) / [08 LLM 選定](./specs/08-llm-selection.md) / [09 ジェネレーター UI](./specs/09-generator-ui-spec.md) / [10 エラーハンドリング](./specs/10-error-handling.md)
 
 ---
 

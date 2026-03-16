@@ -6,6 +6,7 @@ import { validateSiteGenerationInput } from "@web-site-generator/shared";
 import { buildMarkdown } from "./buildMarkdown.js";
 import { writeProjectFromLlmOutput } from "./writeProject.js";
 import { deployFromDir } from "@web-site-generator/deploy";
+import { createLogger, generateRequestId } from "./logger.js";
 
 const MODEL_ID = "gemini-3-flash-preview";
 
@@ -48,12 +49,8 @@ const TECH_SPEC_SUMMARY = `
 - tailwind.config.(js|ts)
 - postcss.config.(js|cjs)
 - app/layout.tsx
-- app/page.tsx          （トップページ）
-- app/form/page.tsx     （フォーム画面）
-- app/result/page.tsx   （結果画面）
-- app/error.tsx         （エラー境界）
-- app/not-found.tsx     （404）
-- app/loading/page.tsx  （ローディング）
+- app/page.tsx（トップページ）
+- 仕様書の各ページに対応する app/<path>/page.tsx
 
 【重要な制約】
 - 上記の必須ファイルは**すべて必ず作成すること**。
@@ -75,7 +72,7 @@ const OUTPUT_FORMAT = `
 export default function RootLayout({ children }: { children: React.ReactNode }) { /* ... */ }
 ---END---
 
-必須のファイル（package.json, tsconfig.json, next.config.(mjs|js), tailwind.config.(js|ts), postcss.config.(js|cjs), app/layout.tsx, app/page.tsx, app/form/page.tsx, app/result/page.tsx, app/error.tsx, app/not-found.tsx, app/loading/page.tsx）は必ず出力し、それ以外のファイルも必要に応じてこの形式で出力すること。
+必須のファイル（package.json, tsconfig.json, next.config.(mjs|js), tailwind.config.(js|ts), postcss.config.(js|cjs), app/layout.tsx, 各ページの app/<path>/page.tsx）は必ず出力し、それ以外のファイルも必要に応じてこの形式で出力すること。
 `.trim();
 
 export type PipelineResult =
@@ -83,23 +80,39 @@ export type PipelineResult =
   | { success: false; error: string; code?: string };
 
 /**
- * 単一エントリポイント: 検証 → 1本MD → LLM実装 → 添付画像配置 → ビルド確認 → デプロイ。成功時のみ URL を返す。
+ * 単一エントリポイント: 検証 → 1本MD → LLM実装 → 添付画像配置 → デプロイ（REST API）。成功時のみ URL を返す。
+ * 本番運用: 構造化ログ・例外処理・エラーコードを網羅。
  */
 export async function runFullPipeline(
   input: SiteGenerationInput,
   options?: { apiKey?: string; timeoutMs?: number; attachedImages?: AttachedImages }
 ): Promise<PipelineResult> {
+  const requestId = generateRequestId();
+  const log = createLogger(requestId);
+  const stepStart = () => Date.now();
+  const stepEnd = (start: number) => Date.now() - start;
+
+  // 1. 設定チェック
   const apiKey = options?.apiKey ?? process.env.GEMINI_API_KEY;
   if (!apiKey) {
+    log.error("CONFIG_CHECK", { code: "CONFIG_ERROR", message: "GEMINI_API_KEY 未設定" });
     return { success: false, error: "GEMINI_API_KEY が設定されていません", code: "CONFIG_ERROR" };
   }
 
+  // 2. 入力検証
+  const t0 = stepStart();
   const validationError = validateSiteGenerationInput(input);
   if (validationError) {
+    log.error("VALIDATION", { code: "VALIDATION_ERROR", error: validationError, durationMs: stepEnd(t0) });
     return { success: false, error: validationError, code: "VALIDATION_ERROR" };
   }
+  log.info("VALIDATION", { durationMs: stepEnd(t0) });
 
+  // 3. 仕様MD生成（ロジック）
+  const t1 = stepStart();
   const specMarkdown = buildMarkdown(input);
+  log.info("BUILD_SPEC", { durationMs: stepEnd(t1) });
+
   const attachedImages = options?.attachedImages ?? {};
   const attachedRefs = Object.keys(attachedImages);
   const attachedFileList =
@@ -108,17 +121,18 @@ export async function runFullPipeline(
           .map((ref) => `${ref}.${contentTypeToExt(attachedImages[ref].contentType)}`)
           .join(", ")
       : "";
-
   const attachedInstruction =
     attachedRefs.length > 0
       ? `\n\n【添付画像について】ユーザーが添付した画像を、生成したプロジェクトの public/images/ に次のファイル名で配置します: ${attachedFileList}。該当セクションでは next/image の src="/images/<上記のファイル名>" で参照すること。\n`
       : "";
 
-  const ai = new GoogleGenAI({ apiKey });
+  // 4. LLM 実装
+  const t2 = stepStart();
   const prompt = `${TECH_SPEC_SUMMARY}\n\n${OUTPUT_FORMAT}${attachedInstruction}\n\n以下が仕様書（1本マークダウン）です。この仕様に従い、Next.js プロジェクトの全ファイルを上記形式で出力してください。\n\n--- 仕様書 ---\n${specMarkdown}`;
 
   let llmText: string;
   try {
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: MODEL_ID,
       contents: prompt,
@@ -126,27 +140,45 @@ export async function runFullPipeline(
     llmText = response.text ?? "";
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
+    log.error("LLM_GENERATE", { code: "LLM_ERROR", error: msg, durationMs: stepEnd(t2) });
     return { success: false, error: `LLM 呼び出しエラー: ${msg}`, code: "LLM_ERROR" };
   }
+  log.info("LLM_GENERATE", { durationMs: stepEnd(t2) });
 
+  // 5. ファイル書き出し
+  const t3 = stepStart();
   const outDir = await writeProjectFromLlmOutput(llmText);
   if (outDir instanceof Error) {
+    log.error("WRITE_PROJECT", { code: "LLM_OUTPUT_ERROR", error: outDir.message, durationMs: stepEnd(t3) });
     return { success: false, error: outDir.message, code: "LLM_OUTPUT_ERROR" };
   }
+  log.info("WRITE_PROJECT", { durationMs: stepEnd(t3) });
 
+  // 6. 添付画像配置
   if (attachedRefs.length > 0) {
+    const t4 = stepStart();
     try {
       await writeAttachedImages(outDir, attachedImages);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      log.error("WRITE_IMAGES", { code: "ATTACHED_IMAGES_ERROR", error: msg, durationMs: stepEnd(t4) });
       return { success: false, error: `添付画像の書き出し失敗: ${msg}`, code: "ATTACHED_IMAGES_ERROR" };
     }
+    log.info("WRITE_IMAGES", { durationMs: stepEnd(t4) });
   }
 
+  // 7. デプロイ（REST API・ロジック）
+  const t5 = stepStart();
   const deployResult = await deployFromDir(outDir);
   if (!deployResult.success) {
+    log.error("DEPLOY", {
+      code: deployResult.code ?? "DEPLOY_ERROR",
+      error: deployResult.error,
+      durationMs: stepEnd(t5),
+    });
     return { success: false, error: deployResult.error, code: deployResult.code ?? "DEPLOY_ERROR" };
   }
+  log.info("DEPLOY", { message: "success", durationMs: stepEnd(t5) });
 
   return {
     success: true,
