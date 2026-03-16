@@ -34,11 +34,31 @@ async function writeAttachedImages(
 }
 
 const TECH_SPEC_SUMMARY = `
-生成するサイトは次の技術に固定すること:
+生成するサイトは次の技術・構成に**固定**すること:
+
+【技術スタック】
 - Next.js (App Router), TypeScript, Tailwind CSS, npm
-- app/ 配下に layout.tsx, page.tsx。ルートは仕様書のパスに合わせる
-- 画像は next/image を使用
-- デザイン希望は Tailwind のクラスとコンポーネントで反映
+- 画像は必ず next/image を使用する
+- 追加の依存パッケージはできるだけ増やさない（どうしても必要な場合のみ追加）
+
+【必須のファイル構成】
+- package.json
+- tsconfig.json
+- next.config.mjs または next.config.js のどちらか 1 つ
+- tailwind.config.(js|ts)
+- postcss.config.(js|cjs)
+- app/layout.tsx
+- app/page.tsx          （トップページ）
+- app/form/page.tsx     （フォーム画面）
+- app/result/page.tsx   （結果画面）
+- app/error.tsx         （エラー境界）
+- app/not-found.tsx     （404）
+- app/loading/page.tsx  （ローディング）
+
+【重要な制約】
+- 上記の必須ファイルは**すべて必ず作成すること**。
+- 仕様書にないパスや不要なページは極力作らない。
+- import パスは常に正しく解決できるように書く（相対パスの ../ の数を間違えない）。
 - 仕様書の見出し・本文・文言・画像指定をすべて反映すること。デザインは中身とデザイン希望に合わせる。
 `.trim();
 
@@ -49,11 +69,13 @@ const OUTPUT_FORMAT = `
 ---END---
 例:
 ---FILE: package.json---
-{ "name": "..." }
+{ "name": "my-site", "private": true, "scripts": { "build": "next build" }, "dependencies": { "next": "14.2.0", "react": "18.2.0", "react-dom": "18.2.0" } }
 ---END---
 ---FILE: app/layout.tsx---
-export default function Layout...
+export default function RootLayout({ children }: { children: React.ReactNode }) { /* ... */ }
 ---END---
+
+必須のファイル（package.json, tsconfig.json, next.config.(mjs|js), tailwind.config.(js|ts), postcss.config.(js|cjs), app/layout.tsx, app/page.tsx, app/form/page.tsx, app/result/page.tsx, app/error.tsx, app/not-found.tsx, app/loading/page.tsx）は必ず出力し、それ以外のファイルも必要に応じてこの形式で出力すること。
 `.trim();
 
 export type PipelineResult =
