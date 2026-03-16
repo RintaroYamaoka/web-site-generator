@@ -62,6 +62,10 @@ export async function deployFromDir(dir: string): Promise<DeployResult> {
     return { success: false, error: "package.json がありません", code: "INVALID_PROJECT" };
   }
 
+  // Vercel サンドボックス対策: npm が /home/sbx_user* にキャッシュを作ろうとして ENOENT になるのを防ぐ
+  const npmrcPath = path.join(resolvedDir, ".npmrc");
+  await fs.writeFile(npmrcPath, "cache=/tmp/.npm-cache\n", "utf-8");
+
   const token = process.env.VERCEL_TOKEN;
   if (!token) {
     return { success: false, error: "VERCEL_TOKEN が設定されていません", code: "CONFIG_ERROR" };

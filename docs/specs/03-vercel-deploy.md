@@ -49,11 +49,12 @@
 
 ## デプロイフロー（REST API）
 
-1. **ファイル収集** … 生成ディレクトリから `package.json`, `app/`, `public/`, `next.config.*`, `tailwind.config.*`, `tsconfig.json`, `postcss.config.*` 等を再帰的に読み取り、`{ file: 相対パス, data: 内容, encoding: "utf-8"|"base64" }` の配列を構築する。`node_modules`, `.git`, `.next` は除外。
-2. **ビルド検証（オプション）** … `SKIP_BUILD_VERIFY` が未設定の場合、ローカルで `npm install` → `npm run build` を実行し、失敗時はビルドログをエラーとして返す（BUILD_ERROR の早期検出・詳細表示）。成功後は `node_modules` / `.next` を除外して再収集。
-3. **デプロイ作成** … `POST https://api.vercel.com/v13/deployments` に `name`（一意、例: `gen-${timestamp}`）、`files`、`target: "preview"` を送信。
-4. **完了待機** … レスポンスの `id` で `GET /v13/deployments/:id` をポーリングし、`readyState === "READY"` または `readyState === "ERROR"` になるまで待つ。タイムアウト（例: 5 分）を設ける。
-5. **URL 返却** … `readyState === "READY"` なら `url` を返す。`ERROR` なら `errorMessage` / `errorStep` / `errorCode` をエラーメッセージに含めて返す。
+1. **.npmrc 付与** … Vercel サンドボックスで `npm install` が `/home/sbx_user*` にキャッシュを作ろうとして ENOENT になるのを防ぐため、`cache=/tmp/.npm-cache` を設定した `.npmrc` をプロジェクトルートに書き込む。
+2. **ファイル収集** … 生成ディレクトリから `package.json`, `.npmrc`, `app/`, `public/`, `next.config.*`, `tailwind.config.*`, `tsconfig.json`, `postcss.config.*` 等を再帰的に読み取り、`{ file: 相対パス, data: 内容, encoding: "utf-8"|"base64" }` の配列を構築する。`node_modules`, `.git`, `.next` は除外。
+3. **ビルド検証（オプション）** … `SKIP_BUILD_VERIFY` が未設定の場合、ローカルで `npm install` → `npm run build` を実行し、失敗時はビルドログをエラーとして返す（BUILD_ERROR の早期検出・詳細表示）。成功後は `node_modules` / `.next` を除外して再収集。
+4. **デプロイ作成** … `POST https://api.vercel.com/v13/deployments` に `name`（一意、例: `gen-${timestamp}`）、`files`、`target: "preview"` を送信。
+5. **完了待機** … レスポンスの `id` で `GET /v13/deployments/:id` をポーリングし、`readyState === "READY"` または `readyState === "ERROR"` になるまで待つ。タイムアウト（例: 5 分）を設ける。
+6. **URL 返却** … `readyState === "READY"` なら `url` を返す。`ERROR` なら `errorMessage` / `errorStep` / `errorCode` をエラーメッセージに含めて返す。
 
 ## エラーハンドリング
 
